@@ -1,0 +1,441 @@
+// Everything start from plugin such as Maven
+// java plugin is mandatory for compile java classes, run test and so on
+plugins {
+    id 'java'
+}
+
+// Project group name and version
+group 'sample-gradle-groovy-project'
+version '1.0-SNAPSHOT'
+
+// Adjusting Java source version and target java version
+// Java JDK as 1.7, 1.8, 9, 10, 11 , 12
+// Defines which language version of Java your source files should be treated as.
+sourceCompatibility = 12
+// Defines the minimum JVM version your code should run on, i.e. it determines the version of byte code the compiler generates.
+targetCompatibility = 12
+
+// configuration to Maven repository for adding project dependencies and APIs
+// More information at: https://docs.gradle.org/current/userguide/repository_types.html#sec:flat_dir_resolver
+repositories {
+    // main Maven libraries
+    jcenter()
+
+    // Maven central repository
+    mavenCentral()
+
+    // Maven Local repository
+    mavenLocal()
+
+    // Google central SDK repository
+    //google()
+
+    // Add company maven or Ivy repository
+    /**maven {
+        // Look for POMs and artifacts, such as JARs, here
+        url "http://repo2.mycompany.com/maven2"
+        // Look for artifacts here if not found at the above location
+        artifactUrls "http://repo.mycompany.com/jars"
+        artifactUrls "http://repo.mycompany.com/jars2"
+    }
+    ivy {
+        url "http://repo.mycompany.com/repo"
+    }*/
+
+    // Add local file system directory
+    /**flatDir {
+        dirs 'lib1', 'lib2'
+    }*/
+
+    // Maven password protected repository
+    /**maven {
+        url "sftp://repo.mycompany.com:22/maven2"
+        credentials {
+            username "user"
+            password "password"
+        }
+    }*/
+
+    // Maven Amazon Cloud repository
+    /**maven {
+        url "s3://myCompanyBucket/maven2"
+        credentials(AwsCredentials) {
+            accessKey "someKey"
+            secretKey "someSecret"
+            // optional
+            sessionToken "someSTSToken"
+        }
+    }*/
+
+    // Maven Google Cloud Storage
+    /**maven {
+        url "gcs://myCompanyBucket/maven2"
+    }*/
+
+}
+
+// Add especial dependency or API in this model
+// 1- scope usage(compileOnly, implementation, runtimeOnly, testCompileOnly, testImplementation, testRuntimeOnly). more info at: https://docs.gradle.org/current/userguide/java_plugin.html#sec:java_plugin_and_dependency_management
+// 2- API group name
+// 3- API name
+// 4- API version
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    // Declaring dependencies with changing (e.g. SNAPSHOT) and dynamic (range) versions
+    /**implementation 'org.springframework:spring-web:5.0.3.BUILD-SNAPSHOT'*/
+    /**implementation 'org.springframework:spring-web:5.+'*/
+
+
+}
+
+// Packaging and publishing
+// More info at : https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
+/**
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+ */
+// If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this
+// Creating a Java uber or fat JAR
+/**
+plugins {
+    id 'java'
+}
+
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'commons-io:commons-io:2.6'
+}
+
+task uberJar(type: Jar) {
+    archiveClassifier = 'uber'
+
+    from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+}
+ */
+
+
+// Modifying the JAR manifest
+// Each instance of the Jar, War and Ear tasks has a manifest property that allows you to customize the MANIFEST.MF file that goes into the corresponding archive. The following example demonstrates how to set attributes in the JAR’s manifest
+/**
+
+jar {
+    manifest {
+        attributes("Implementation-Title": "Gradle",
+                   "Implementation-Version": version)
+    }
+}
+
+ */
+
+// Creating a manifest object
+/**
+ext.sharedManifest = manifest {
+    attributes("Implementation-Title": "Gradle",
+               "Implementation-Version": version)
+}
+task fooJar(type: Jar) {
+    manifest = project.manifest {
+        from sharedManifest
+    }
+}
+ */
+
+
+
+// Building Java applications
+// Java applications packaged as a JAR aren’t set up for easy launching from the command line or a desktop environment. The Application Plugin solves the command line aspect by creating a distribution that includes the production JAR, its dependencies and launch scripts Unix-like and Windows systems.
+// To use the application plugin, include the following in your build script
+// More info at: https://docs.gradle.org/current/userguide/application_plugin.html#application_plugin
+/**
+plugins {
+    id 'application'
+}
+ */
+// Configure the application main class
+// The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
+/**
+application {
+    mainClassName = 'org.gradle.sample.Main'
+}
+ */
+// Configure default JVM settings
+/**
+application {
+    applicationDefaultJvmArgs = ['-Dgreeting.language=en']
+}
+ */
+ // Convention properties (deprecated)
+// Unlike the extension properties, these properties appear as top-level project properties in the build script. For example, to change the application name you can just add the following to your build script:
+/**
+applicationName = 'my-app'
+ */
+
+
+
+// Maven Publish Plugin
+// he Maven Publish Plugin provides the ability to publish build artifacts to an Apache Maven repository.
+/**
+plugins {
+    id 'maven-publish'
+}
+ */
+
+
+/**
+publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = 'org.gradle.sample'
+                artifactId = 'project1-sample'
+                version = '1.1'
+
+                from components.java
+            }
+        }
+    }
+ */
+
+/**
+group = 'org.example'
+version = '1.0'
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'myRepo'
+            url = "file://${buildDir}/repo"
+        }
+    }
+}
+ */
+/**
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+ */
+
+
+// Snapshot and release repositories
+/**
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = "$buildDir/repos/releases"
+            def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+ */
+// Configuring repository URL based on project property
+/**
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = "$buildDir/repos/releases"
+            def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+            url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
+        }
+    }
+}
+ */
+
+
+
+// Declaring a sibling project as a dependency
+/**
+project(':web-service') {
+    dependencies {
+        implementation project(':utils')
+        implementation project(':api')
+    }
+}
+ */
+
+// Customizing file and directory locations
+/**
+sourceSets {
+    main {
+         java {
+            srcDirs = ['src']
+         }
+    }
+
+    test {
+        java {
+            srcDirs = ['test']
+        }
+    }
+}
+ */
+
+// Changing compiler options
+/**
+compileJava {
+    options.incremental = true
+    options.fork = true
+    options.failOnError = false
+}
+ */
+
+
+// Managing resources
+// File copying in depth
+// More info at : https://docs.gradle.org/current/userguide/working_with_files.html#sec:copying_files
+/**
+The basic process of copying files in Gradle is a simple one:
+
+Define a task of type Copy
+Specify which files (and potentially directories) to copy
+Specify a destination for the copied files
+ */
+
+/**
+task anotherCopyTask (type: Copy) {
+    // Copy everything under src/main/webapp
+    from 'src/main/webapp'
+    // Copy a single file
+    from 'src/staging/index.html'
+    // Copy the output of a task
+    from copyTask
+    // Copy the output of a task using Task outputs explicitly.
+    from copyTaskWithPatterns.outputs
+    // Copy the contents of a Zip file
+    from zipTree('src/main/assets.zip')
+    // Determine the destination directory later
+    into { getDestDir() }
+}
+ */
+
+// Filtering files
+// Selecting the files to copy
+/**
+ task copyTaskWithPatterns (type: Copy) {
+ from 'src/main/webapp'
+ into "$buildDir/explodedWar"
+ include '**\/*.html'
+include '**\/*.jsp'
+exclude { FileTreeElement details ->
+    details.file.name.endsWith('.html') &&
+            details.file.text.contains('DRAFT')
+}
+}
+ */
+
+// Renaming files
+// Using a regular expression , Using a closure
+/**
+ task rename (type: Copy) {
+ from 'src/main/webapp'
+ into "$buildDir/explodedWar"
+ // Use a closure to convert all file names to upper case
+ rename { String fileName ->
+ fileName.toUpperCase()
+ }
+ // Use a regular expression to map the file name
+ rename '(.+)-staging-(.+)', '$1$2'
+ rename(/(.+)-staging-(.+)/, '$1$2')
+ }
+ */
+
+// Copying files in your own tasks
+/**
+ task copyMethod {
+ doLast {
+ copy {
+ from 'src/main/webapp'
+ into "$buildDir/explodedWar"
+ include '**\/*.html'
+include '**\/*.jsp'
+}
+}
+}
+ */
+
+// Creation of ZIP archive
+
+/**
+plugins {
+    id 'base'
+}
+
+version = 1.0
+
+task myZip(type: Zip) {
+    from 'somedir'
+
+    doLast {
+        println archiveFileName.get()
+        println relativePath(destinationDirectory)
+        println relativePath(archiveFile)
+    }
+}
+ */
+
+// Generating API documentation
+/**
+configurations {
+    asciidoclet
+}
+
+dependencies {
+    asciidoclet 'org.asciidoctor:asciidoclet:1.+'
+}
+
+task configureJavadoc {
+    doLast {
+        javadoc {
+            options.doclet = 'org.asciidoctor.Asciidoclet'
+            options.docletpath = configurations.asciidoclet.files.toList()
+        }
+    }
+}
+
+javadoc {
+    dependsOn configureJavadoc
+}
+ */
+
+// The War Plugin
+/**
+plugins {
+    id 'war'
+}
+ */
+
